@@ -153,7 +153,8 @@ func (s *Saga) compensate(tlog Log) error {
 	args := UnmarshalParam(s.sec, tlog.Params)
 
 	params := make([]reflect.Value, 0, len(args)+1)
-	params = append(params, reflect.ValueOf(s.context))
+	//params = append(params, reflect.ValueOf(s.context))
+	params = append(params, reflect.ValueOf(context.Background()))
 	params = append(params, args...)
 
 	subDef := s.sec.MustFindSubTxDef(tlog.SubTxID)
