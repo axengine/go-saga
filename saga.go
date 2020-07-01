@@ -42,6 +42,7 @@ type Saga struct {
 	logID   string
 	context context.Context
 	sec     *ExecutionCoordinator
+	err     error
 }
 
 func (s *Saga) startSaga() {
@@ -77,6 +78,7 @@ func (s *Saga) ExecSub(subTxID string, args ...interface{}) *Saga {
 	}
 	result := subTxDef.action.Call(params)
 	if isReturnError(result) {
+		s.err, _ = result[0].Interface().(error)
 		s.Abort()
 		return s
 	}
@@ -94,7 +96,7 @@ func (s *Saga) ExecSub(subTxID string, args ...interface{}) *Saga {
 }
 
 // EndSaga finishes a Saga's execution.
-func (s *Saga) EndSaga() {
+func (s *Saga) EndSaga() error {
 	log := &Log{
 		Type: SagaEnd,
 		Time: time.Now(),
@@ -107,6 +109,7 @@ func (s *Saga) EndSaga() {
 	if err != nil {
 		panic("Clean up topic failure")
 	}
+	return s.err
 }
 
 // Abort stop and compensate to rollback to start situation.

@@ -2,6 +2,7 @@ package saga_test
 
 import (
 	"golang.org/x/net/context"
+	"log"
 	"time"
 
 	"github.com/axengine/go-saga"
@@ -47,10 +48,14 @@ func Example_sagaTransaction() {
 	ctx := context.Background()
 
 	var sagaID uint64 = 2
-	saga.StartSaga(ctx, sagaID).
+	err := saga.StartSaga(ctx, sagaID).
 		ExecSub("deduce", from, amount).
 		ExecSub("deposit", to, amount).
 		EndSaga()
 
 	// 4. done.
+
+	if err != nil {
+		log.Println("with an error ", err)
+	}
 }

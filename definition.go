@@ -68,5 +68,11 @@ func subTxMethod(obj interface{}) reflect.Value {
 		funcValue.Type().In(0) != reflect.TypeOf((*context.Context)(nil)).Elem() {
 		panic("First argument must use context.Context.")
 	}
+
+	if funcValue.Type().NumOut() != 1 ||
+		funcValue.Type().Out(0) != reflect.TypeOf((*error)(nil)).Elem() {
+		panic("First return value must use error.")
+	}
+
 	return funcValue
 }
