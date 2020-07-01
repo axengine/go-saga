@@ -43,6 +43,7 @@ type Saga struct {
 	context context.Context
 	sec     *ExecutionCoordinator
 	err     error
+	abort   bool
 }
 
 func (s *Saga) startSaga() {
@@ -59,6 +60,9 @@ func (s *Saga) startSaga() {
 // ExecSub executes a sub-transaction for given subTxID(which define in SEC initialize) and arguments.
 // it returns current Saga.
 func (s *Saga) ExecSub(subTxID string, args ...interface{}) *Saga {
+	if s.abort {
+		return s
+	}
 	subTxDef := s.sec.MustFindSubTxDef(subTxID)
 	log := &Log{
 		Type:    ActionStart,
@@ -116,6 +120,7 @@ func (s *Saga) EndSaga() error {
 // This method will stop continue sub-transaction and do Compensate for executed sub-transaction.
 // SubTx will call this method internal.
 func (s *Saga) Abort() {
+	s.abort = true
 	logs, err := LogStorage().Lookup(s.logID)
 	if err != nil {
 		panic("Abort Panic")
