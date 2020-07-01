@@ -2,8 +2,8 @@ package saga_test
 
 import (
 	"fmt"
-	"github.com/lysu/go-saga"
-	_ "github.com/lysu/go-saga/storage/memory"
+	"github.com/axengine/go-saga"
+	_ "github.com/axengine/go-saga/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"testing"

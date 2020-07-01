@@ -1,9 +1,9 @@
 package memory
 
 import (
+	"github.com/axengine/go-saga"
+	"github.com/axengine/go-saga/storage"
 	"github.com/juju/errors"
-	"github.com/lysu/go-saga"
-	"github.com/lysu/go-saga/storage"
 	"sync"
 )
 
