@@ -1,7 +1,7 @@
 package saga
 
 import (
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
 	"time"
 )
 
@@ -46,6 +46,7 @@ func mustUnmarshalLog(data string) Log {
 }
 
 func mustMarshal(value interface{}) string {
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	s, err := json.Marshal(value)
 	if err != nil {
 		panic("Marshal Failure")
@@ -54,6 +55,7 @@ func mustMarshal(value interface{}) string {
 }
 
 func mustUnmarshal(data []byte, v interface{}) {
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	err := json.Unmarshal([]byte(data), v)
 	if err != nil {
 		panic("Unmarshal Failure")
