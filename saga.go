@@ -8,33 +8,15 @@
 package saga
 
 import (
+	"github.com/axengine/go-saga/storage"
 	"github.com/juju/errors"
 	"reflect"
 	"time"
 
-	"github.com/axengine/go-saga/storage"
 	"golang.org/x/net/context"
-	"log"
-	"os"
 )
 
-const LogPrefix = "saga_"
-
-var Logger *log.Logger
-var StorageConfig storage.StorageConfig
-var StorageProvider storage.StorageProvider
-
-func LogStorage() storage.Storage {
-	return StorageProvider(StorageConfig)
-}
-
-func init() {
-	Logger = log.New(os.Stdout, "[Saga]", log.LstdFlags)
-}
-
-func SetLogger(l *log.Logger) {
-	Logger = l
-}
+const LogPrefix = "saga"
 
 // Saga presents current execute transaction.
 // A Saga constituted by small sub-transactions.
@@ -45,6 +27,7 @@ type Saga struct {
 	sec     *ExecutionCoordinator
 	err     error
 	abort   bool
+	store   storage.Storage
 }
 
 func (s *Saga) startSaga() {
@@ -52,7 +35,7 @@ func (s *Saga) startSaga() {
 		Type: SagaStart,
 		Time: time.Now(),
 	}
-	err := LogStorage().AppendLog(s.logID, log.mustMarshal())
+	err := s.store.AppendLog(s.logID, log.mustMarshal())
 	if err != nil {
 		panic(errors.Annotate(err, "Add log Failure"))
 	}
@@ -71,7 +54,7 @@ func (s *Saga) ExecSub(subTxID string, args ...interface{}) *Saga {
 		Time:    time.Now(),
 		Params:  MarshalParam(s.sec, args),
 	}
-	err := LogStorage().AppendLog(s.logID, log.mustMarshal())
+	err := s.store.AppendLog(s.logID, log.mustMarshal())
 	if err != nil {
 		panic(errors.Annotate(err, "Add log Failure"))
 	}
@@ -93,7 +76,7 @@ func (s *Saga) ExecSub(subTxID string, args ...interface{}) *Saga {
 		SubTxID: subTxID,
 		Time:    time.Now(),
 	}
-	err = LogStorage().AppendLog(s.logID, log.mustMarshal())
+	err = s.store.AppendLog(s.logID, log.mustMarshal())
 	if err != nil {
 		panic(errors.Annotate(err, "Add log Failure"))
 	}
@@ -106,11 +89,11 @@ func (s *Saga) EndSaga() error {
 		Type: SagaEnd,
 		Time: time.Now(),
 	}
-	err := LogStorage().AppendLog(s.logID, log.mustMarshal())
+	err := s.store.AppendLog(s.logID, log.mustMarshal())
 	if err != nil {
 		panic(errors.Annotate(err, "Add log Failure"))
 	}
-	err = LogStorage().Cleanup(s.logID)
+	err = s.store.Cleanup(s.logID)
 	if err != nil {
 		panic(errors.Annotate(err, "Clean up topic failure"))
 	}
@@ -122,7 +105,7 @@ func (s *Saga) EndSaga() error {
 // SubTx will call this method internal.
 func (s *Saga) Abort() {
 	s.abort = true
-	logs, err := LogStorage().Lookup(s.logID)
+	logs, err := s.store.Lookup(s.logID)
 	if err != nil {
 		panic(errors.Annotate(err, "Abort Panic"))
 	}
@@ -130,7 +113,7 @@ func (s *Saga) Abort() {
 		Type: SagaAbort,
 		Time: time.Now(),
 	}
-	err = LogStorage().AppendLog(s.logID, alog.mustMarshal())
+	err = s.store.AppendLog(s.logID, alog.mustMarshal())
 	if err != nil {
 		panic(errors.Annotate(err, "Add log Failure"))
 	}
@@ -151,7 +134,7 @@ func (s *Saga) compensate(tlog Log) error {
 		SubTxID: tlog.SubTxID,
 		Time:    time.Now(),
 	}
-	err := LogStorage().AppendLog(s.logID, clog.mustMarshal())
+	err := s.store.AppendLog(s.logID, clog.mustMarshal())
 	if err != nil {
 		panic(errors.Annotate(err, "Add log Failure"))
 	}
@@ -174,7 +157,7 @@ func (s *Saga) compensate(tlog Log) error {
 		SubTxID: tlog.SubTxID,
 		Time:    time.Now(),
 	}
-	err = LogStorage().AppendLog(s.logID, clog.mustMarshal())
+	err = s.store.AppendLog(s.logID, clog.mustMarshal())
 	if err != nil {
 		panic(errors.Annotate(err, "Add log Failure"))
 	}

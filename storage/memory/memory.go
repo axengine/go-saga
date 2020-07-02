@@ -1,27 +1,9 @@
 package memory
 
 import (
-	"github.com/axengine/go-saga"
 	"github.com/axengine/go-saga/storage"
 	"github.com/juju/errors"
-	"sync"
 )
-
-var storageInstance storage.Storage
-var memoryInit sync.Once
-
-func init() {
-	saga.StorageProvider = func(cfg storage.StorageConfig) storage.Storage {
-		memoryInit.Do(func() {
-			var err error
-			storageInstance, err = newMemStorage()
-			if err != nil {
-				panic(err)
-			}
-		})
-		return storageInstance
-	}
-}
 
 type memStorage struct {
 	data map[string][]string
@@ -30,7 +12,7 @@ type memStorage struct {
 // NewMemStorage creates log storage base on memory.
 // This storage use simple `map[string][]string`, just for TestCase used.
 // NOT use this in product.
-func newMemStorage() (storage.Storage, error) {
+func NewMemStorage() (storage.Storage, error) {
 	return &memStorage{
 		data: make(map[string][]string),
 	}, nil

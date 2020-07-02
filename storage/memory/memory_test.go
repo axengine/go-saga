@@ -6,7 +6,7 @@ import (
 )
 
 func TestMemStorage(t *testing.T) {
-	s, err := newMemStorage()
+	s, err := NewMemStorage()
 	assert.NoError(t, err)
 	err = s.AppendLog("t_11", "{}")
 	assert.NoError(t, err)
