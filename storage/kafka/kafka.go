@@ -157,5 +157,34 @@ func (s *kafkaStorage) Cleanup(logID string) error {
 
 // LastLog consume last log
 func (s *kafkaStorage) LastLog(logID string) (string, error) {
-	return "", nil
+	partitionConsumer, err := s.consumer.ConsumePartition(logID, 0, sarama.OffsetOldest)
+	if err != nil {
+		return "", errors.Annotatef(err, "Consume topic %s failured", logID)
+	}
+
+	defer func() {
+		if err := partitionConsumer.Close(); err != nil {
+			saga.Logger.Printf("[WARNING]Close consumer failure %v", err)
+		}
+	}()
+
+	timer := time.NewTimer(s.consumeReturnDuration)
+	defer timer.Stop()
+	var data string
+	consumed := 0
+consumer_loop:
+	for {
+		select {
+		case msg := <-partitionConsumer.Messages():
+			saga.Logger.Printf("Consumed message offset %d\n", msg.Offset)
+			consumed++
+			data = string(msg.Value)
+			timer.Reset(s.consumeReturnDuration)
+		case <-timer.C:
+			break consumer_loop
+		}
+	}
+
+	saga.Logger.Printf("Consumed: %d\n", consumed)
+	return data, nil
 }
