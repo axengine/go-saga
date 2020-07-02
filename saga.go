@@ -8,6 +8,7 @@
 package saga
 
 import (
+	"github.com/juju/errors"
 	"reflect"
 	"time"
 
@@ -53,7 +54,7 @@ func (s *Saga) startSaga() {
 	}
 	err := LogStorage().AppendLog(s.logID, log.mustMarshal())
 	if err != nil {
-		panic("Add log Failure")
+		panic(errors.Annotate(err, "Add log Failure"))
 	}
 }
 
@@ -72,7 +73,7 @@ func (s *Saga) ExecSub(subTxID string, args ...interface{}) *Saga {
 	}
 	err := LogStorage().AppendLog(s.logID, log.mustMarshal())
 	if err != nil {
-		panic("Add log Failure")
+		panic(errors.Annotate(err, "Add log Failure"))
 	}
 
 	params := make([]reflect.Value, 0, len(args)+1)
@@ -94,7 +95,7 @@ func (s *Saga) ExecSub(subTxID string, args ...interface{}) *Saga {
 	}
 	err = LogStorage().AppendLog(s.logID, log.mustMarshal())
 	if err != nil {
-		panic("Add log Failure")
+		panic(errors.Annotate(err, "Add log Failure"))
 	}
 	return s
 }
@@ -107,11 +108,11 @@ func (s *Saga) EndSaga() error {
 	}
 	err := LogStorage().AppendLog(s.logID, log.mustMarshal())
 	if err != nil {
-		panic("Add log Failure")
+		panic(errors.Annotate(err, "Add log Failure"))
 	}
 	err = LogStorage().Cleanup(s.logID)
 	if err != nil {
-		panic("Clean up topic failure")
+		panic(errors.Annotate(err, "Clean up topic failure"))
 	}
 	return s.err
 }
@@ -123,7 +124,7 @@ func (s *Saga) Abort() {
 	s.abort = true
 	logs, err := LogStorage().Lookup(s.logID)
 	if err != nil {
-		panic("Abort Panic")
+		panic(errors.Annotate(err, "Abort Panic"))
 	}
 	alog := &Log{
 		Type: SagaAbort,
@@ -131,14 +132,14 @@ func (s *Saga) Abort() {
 	}
 	err = LogStorage().AppendLog(s.logID, alog.mustMarshal())
 	if err != nil {
-		panic("Add log Failure")
+		panic(errors.Annotate(err, "Add log Failure"))
 	}
 	for i := len(logs) - 1; i >= 0; i-- {
 		logData := logs[i]
 		log := mustUnmarshalLog(logData)
 		if log.Type == ActionStart {
 			if err := s.compensate(log); err != nil {
-				panic("Compensate Failure..")
+				panic(errors.Annotate(err, "Compensate Failure"))
 			}
 		}
 	}
@@ -152,7 +153,7 @@ func (s *Saga) compensate(tlog Log) error {
 	}
 	err := LogStorage().AppendLog(s.logID, clog.mustMarshal())
 	if err != nil {
-		panic("Add log Failure")
+		panic(errors.Annotate(err, "Add log Failure"))
 	}
 
 	args := UnmarshalParam(s.sec, tlog.Params)
@@ -175,7 +176,7 @@ func (s *Saga) compensate(tlog Log) error {
 	}
 	err = LogStorage().AppendLog(s.logID, clog.mustMarshal())
 	if err != nil {
-		panic("Add log Failure")
+		panic(errors.Annotate(err, "Add log Failure"))
 	}
 	return nil
 }

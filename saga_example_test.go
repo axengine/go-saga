@@ -48,7 +48,7 @@ func Test_Example_sagaTransaction(t *testing.T) {
 	amount := 100
 	ctx := context.Background()
 
-	var sagaID string = "any id"
+	var sagaID string = "anyid1" //不能有空格??
 	err := saga.StartSaga(ctx, sagaID).
 		ExecSub("deduce", from, amount).
 		ExecSub("deposit", to, amount).
