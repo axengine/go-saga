@@ -3,6 +3,7 @@ package saga_test
 import (
 	"golang.org/x/net/context"
 	"log"
+	"testing"
 	"time"
 
 	"github.com/axengine/go-saga"
@@ -11,7 +12,7 @@ import (
 
 // This example show how to initialize an Saga execution coordinator(SEC) and add Sub-transaction to it, then start a transfer transaction.
 // In transfer transaction we deduce `100` from foo at first, then deposit 100 into `bar`, deduce & deduce wil both success or rollbacked.
-func Example_sagaTransaction() {
+func Test_Example_sagaTransaction(t *testing.T) {
 
 	// 1. Define sub-transaction method, anonymous method is NOT required, Just define them as normal way.
 	DeduceAccount := func(ctx context.Context, account string, amount int) error {
@@ -23,6 +24,7 @@ func Example_sagaTransaction() {
 		return nil
 	}
 	DepositAccount := func(ctx context.Context, account string, amount int) error {
+		panic("xxx")
 		// Do deposit amount to account, like: account.money + amount
 		return nil
 	}
@@ -32,8 +34,8 @@ func Example_sagaTransaction() {
 	}
 
 	// 2. Init SEC as global SINGLETON(this demo not..), and add Sub-transaction definition into SEC.
-	saga.StorageConfig.Kafka.ZkAddrs = []string{"0.0.0.0:2181"}
-	saga.StorageConfig.Kafka.BrokerAddrs = []string{"0.0.0.0:9092"}
+	saga.StorageConfig.Kafka.ZkAddrs = []string{"192.168.10.32:2181"}
+	saga.StorageConfig.Kafka.BrokerAddrs = []string{"192.168.10.32:9092"}
 	saga.StorageConfig.Kafka.Partitions = 1
 	saga.StorageConfig.Kafka.Replicas = 1
 	saga.StorageConfig.Kafka.ReturnDuration = 50 * time.Millisecond
@@ -47,7 +49,7 @@ func Example_sagaTransaction() {
 	amount := 100
 	ctx := context.Background()
 
-	var sagaID uint64 = 2
+	var sagaID string = "any id"
 	err := saga.StartSaga(ctx, sagaID).
 		ExecSub("deduce", from, amount).
 		ExecSub("deposit", to, amount).

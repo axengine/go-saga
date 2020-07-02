@@ -38,7 +38,7 @@ func SetLogger(l *log.Logger) {
 // Saga presents current execute transaction.
 // A Saga constituted by small sub-transactions.
 type Saga struct {
-	id      uint64
+	id      string
 	logID   string
 	context context.Context
 	sec     *ExecutionCoordinator
