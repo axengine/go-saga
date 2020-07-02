@@ -40,7 +40,7 @@ func _TestAllSuccess_kafka(t *testing.T) {
 
 	ctx := context.Background()
 
-	var sagaID uint64 = 1
+	var sagaID string = "1"
 	saga.StartSaga(ctx, sagaID).
 		ExecSub("deduce", from, amount).
 		ExecSub("deposit", to, amount).
@@ -65,7 +65,7 @@ func _TestDepositFail_kafka(t *testing.T) {
 
 	ctx := context.Background()
 
-	var sagaID uint64 = 1
+	var sagaID string = "1"
 	saga.StartSaga(ctx, sagaID).
 		ExecSub("deduce", from, amount).
 		ExecSub("deposit", to, amount).

@@ -32,7 +32,7 @@ func TestAllSuccess(t *testing.T) {
 
 	ctx := context.Background()
 
-	var sagaID uint64 = 1
+	var sagaID string = "1"
 	saga.StartSaga(ctx, sagaID).
 		ExecSub("deduce", from, amount).
 		ExecSub("deposit", to, amount).
@@ -57,7 +57,7 @@ func TestDepositFail(t *testing.T) {
 
 	ctx := context.Background()
 
-	var sagaID uint64 = 1
+	var sagaID string = "1"
 	saga.StartSaga(ctx, sagaID).
 		ExecSub("deduce", from, amount).
 		ExecSub("deposit", to, amount).

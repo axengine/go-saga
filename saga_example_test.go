@@ -24,7 +24,6 @@ func Test_Example_sagaTransaction(t *testing.T) {
 		return nil
 	}
 	DepositAccount := func(ctx context.Context, account string, amount int) error {
-		panic("xxx")
 		// Do deposit amount to account, like: account.money + amount
 		return nil
 	}
