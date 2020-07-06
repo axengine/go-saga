@@ -16,18 +16,20 @@ type ExecutionCoordinator struct {
 	subTxDefinitions  subTxDefinitions
 	paramTypeRegister *paramTypeRegister
 	store             storage.Storage
+	logPrefix         string
 }
 
 // NewSEC creates Saga Execution Coordinator
 // This method require supply a log Storage to save & lookup log during tx execute.
-func NewSEC(store storage.Storage) ExecutionCoordinator {
+func NewSEC(store storage.Storage, logPrefix string) ExecutionCoordinator {
 	return ExecutionCoordinator{
 		subTxDefinitions: make(subTxDefinitions),
 		paramTypeRegister: &paramTypeRegister{
 			nameToType: make(map[string]reflect.Type),
 			typeToName: make(map[reflect.Type]string),
 		},
-		store: store,
+		store:     store,
+		logPrefix: logPrefix,
 	}
 }
 
@@ -97,7 +99,7 @@ func (e *ExecutionCoordinator) StartSaga(ctx context.Context, id string) *Saga {
 		id:      id,
 		context: ctx,
 		sec:     e,
-		logID:   LogPrefix + id,
+		logID:   e.logPrefix + id,
 		store:   e.store,
 	}
 	s.startSaga()
