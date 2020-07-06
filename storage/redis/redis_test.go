@@ -1,4 +1,4 @@
-package rds
+package redis
 
 import (
 	"github.com/stretchr/testify/assert"
