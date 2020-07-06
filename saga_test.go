@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/axengine/go-saga/storage/kafka"
 	"github.com/axengine/go-saga/storage/redis"
+	"github.com/juju/errors"
 	"log"
 	"os"
 	"testing"
@@ -136,5 +137,55 @@ func TestRecoverTx(t *testing.T) {
 	err = sec.StartCoordinator()
 	if err != nil {
 		t.Log(err)
+	}
+}
+
+func TestPanic(t *testing.T) {
+	// 1. Define sub-transaction method, anonymous method is NOT required, Just define them as normal way.
+	DeduceAccount := func(ctx context.Context, account string, amount int) error {
+		// Do deduce amount from account, like: account.money - amount
+		return nil
+	}
+	CompensateDeduce := func(ctx context.Context, account string, amount int) error {
+		// Compensate deduce amount to account, like: account.money + amount
+		return nil
+	}
+	DepositAccount := func(ctx context.Context, account string, amount int) error {
+		return errors.New("DepositAccount failed")
+	}
+	CompensateDeposit := func(ctx context.Context, account string, amount int) error {
+		return errors.New("CompensateDeposit failed")
+	}
+
+	// store和sec需要相同的logPrefix
+	logPrefix := "saga"
+
+	store, err := redis.NewRedisStore("192.168.10.16:6379", "111111", 14,
+		2, 5, logPrefix)
+	if err != nil {
+		t.Fatal(err)
+	}
+	//store, err = memory.NewMemStorage()
+	sec := NewSEC(store, logPrefix)
+
+	sec.AddSubTxDef("deduce", DeduceAccount, CompensateDeduce).
+		AddSubTxDef("deposit", DepositAccount, CompensateDeposit)
+
+	// 3. Start a saga to transfer 100 from foo to bar.
+
+	from, to := "foo", "bar"
+	amount := 100
+	ctx := context.Background()
+
+	var sagaID string = "anyid1" //不能有空格??
+	err = sec.StartSaga(ctx, sagaID).
+		ExecSub("deduce", from, amount).
+		ExecSub("deposit", to, amount).
+		EndSaga()
+
+	// 4. done.
+
+	if err != nil {
+		log.Println("with an error ", err)
 	}
 }

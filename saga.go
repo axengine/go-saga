@@ -147,9 +147,19 @@ func (s *Saga) compensate(tlog Log) error {
 	params = append(params, args...)
 
 	subDef := s.sec.MustFindSubTxDef(tlog.SubTxID)
-	result := subDef.compensate.Call(params)
-	if isReturnError(result) {
-		s.Abort()
+
+	var try = 0
+	for {
+		try++
+		result := subDef.compensate.Call(params)
+		if !isReturnError(result) {
+			break
+		}
+
+		if try > 10 {
+			err, _ := result[0].Interface().(error)
+			return errors.Annotate(err, "max try compensate")
+		}
 	}
 
 	clog = &Log{
