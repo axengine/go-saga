@@ -3,7 +3,7 @@ package saga
 import (
 	"context"
 	"github.com/axengine/go-saga/storage/kafka"
-	"github.com/axengine/go-saga/storage/redis"
+	"github.com/axengine/go-saga/storage/rds"
 	"log"
 	"os"
 	"testing"
@@ -32,7 +32,7 @@ func TestRedisTx(t *testing.T) {
 	// store和sec需要相同的logPrefix
 	logPrefix := "saga"
 
-	store, err := redis.NewRedisStore("192.168.10.16:6379", "111111", 14,
+	store, err := rds.NewRedisStore("192.168.10.16:6379", "111111", 14,
 		2, 5, logPrefix)
 	if err != nil {
 		t.Fatal(err)
@@ -127,7 +127,7 @@ func TestRecoverTx(t *testing.T) {
 	// store和sec需要相同的logPrefix
 	logPrefix := "saga"
 
-	store, err := redis.NewRedisStore("192.168.10.16:6379", "111111", 14,
+	store, err := rds.NewRedisStore("192.168.10.16:6379", "111111", 14,
 		2, 5, logPrefix)
 	if err != nil {
 		t.Fatal(err)
